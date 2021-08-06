@@ -1,0 +1,9 @@
+---
+### DEB-пакет загружен предварительно в приватный репозиторий и устанавливается оттуда
+
+- name: Update repositories cache and install "filebeat" package
+  apt:
+    name: filebeat=7.13.2
+    update_cache: yes
+    state: present
+

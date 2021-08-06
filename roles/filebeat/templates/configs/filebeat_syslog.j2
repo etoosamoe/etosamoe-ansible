@@ -1,0 +1,64 @@
+filebeat.inputs:
+- input_type: log
+
+  paths:
+    - /var/log/alternatives.log
+    - /var/log/cron.log
+    - /var/log/daemon.log
+    - /var/log/dpkg.log
+    - /var/log/dmesg
+    - /var/log/dmesg.log
+    - /var/log/kern.log
+    - /var/log/syslog
+    - /var/log/debug
+    - /var/log/debug.log
+    - /var/log/cron
+    - /var/log/messages
+
+  fields_under_root: true
+  fields:
+    filebeat: 1
+    type: "system logs"
+
+  multiline.pattern: ^\S+
+  multiline.negate: true
+  multiline.match: after
+
+  scan_frequency: 10s
+  harvester_buffer_size: 16384
+  max_bytes: 10485760
+
+  tail_files: true
+
+  close_inactive: 5m
+  close_renamed: false
+  close_removed: true
+  close_eof: false
+
+processors:
+  - drop_event:
+      when.or:
+      - regexp:
+          message: INFO
+      - regexp:
+          message: info
+      - regexp:
+          message: metricbeat
+      - regexp:
+          message: DEBUG
+      - regexp:
+          message: stunnel
+
+{% for i in node_environments %}{% if i in ansible_nodename %}
+setup.template.name: "syslog"
+setup.template.pattern: "syslog-{{ i }}*"
+setup.template.enabled: true
+setup.ilm.enabled: false
+
+output.elasticsearch:
+  enabled: true
+  hosts: {{ elasticsearch_hosts | to_json}}
+  indices:
+    - index: "syslog-{{ i }}-%{+yyyy.MM.dd}"
+
+{% endif %}{% endfor %}

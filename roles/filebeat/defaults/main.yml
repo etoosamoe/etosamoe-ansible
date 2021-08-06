@@ -1,0 +1,18 @@
+---
+elasticsearch_hosts:
+  - "host1"
+  - "host2"
+  - "host3"
+  - "host4"
+
+packages_list_default:
+  - {module: "auth", service: "auth"}
+#  - {module: "nginx", service: "nginx"}
+#  - {module: "redis", service: "redis-server"}
+#  - {module: "apache2", service: "apache2"}
+
+node_environments:
+  - "production"
+  - "stage"
+  - "infra"
+  - "dev"

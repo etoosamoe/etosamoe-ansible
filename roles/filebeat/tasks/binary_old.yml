@@ -1,0 +1,26 @@
+---
+- name: "wget DEB from web"
+  get_url:
+    url: "{{ filebeat_url_deb }}"
+    dest: "{{ filebeat_deb_dest_path }}"
+
+- name: Install filebeat from a .deb package
+  apt:
+    deb: "{{ filebeat_deb_dest_path }}"
+    only_upgrade: "yes"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  register: filebeat_install_status
+
+#### delete filebeat DEB file from TMP ####
+- name: "Clean the /tmp/ dir up"
+  file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "{{ filebeat_deb_dest_path }}"
+
+- name: stop filebeat
+  service:
+    name: "filebeat"
+    state: "stopped"
+    enabled: "no"

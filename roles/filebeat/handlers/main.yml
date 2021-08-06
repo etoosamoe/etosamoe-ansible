@@ -1,0 +1,78 @@
+---
+- name: "restart filebeat_syslog"
+  systemd:
+    state: "restarted"
+    name: "filebeat_syslog"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_syslog"
+  service:
+    name: "filebeat_syslog"
+    state: "started"
+    enabled: "yes"
+
+- name: "restart filebeat_nginx"
+  systemd:
+    state: "restarted"
+    name: "filebeat_nginx"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_nginx"
+  service:
+    name: "filebeat_nginx"
+    state: "started"
+    enabled: "yes"
+
+- name: "restart filebeat_redis"
+  systemd:
+    state: "restarted"
+    name: "filebeat_redis"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_redis"
+  service:
+    name: "filebeat_redis"
+    state: "started"
+    enabled: "yes"
+
+- name: "restart filebeat_postgresql"
+  systemd:
+    state: "restarted"
+    name: "filebeat_postgresql"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_postgresql"
+  service:
+    name: "filebeat_postgresql"
+    state: "started"
+    enabled: "yes"
+
+- name: "restart filebeat_apache2"
+  systemd:
+    state: "restarted"
+    name: "filebeat_apache2"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_apache2"
+  service:
+    name: "filebeat_apache2"
+    state: "started"
+    enabled: "yes"
+
+- name: "restart filebeat_auth"
+  systemd:
+    state: "restarted"
+    name: "filebeat_auth"
+    enabled: "yes"
+    daemon_reload: "yes"
+
+- name: "check started filebeat_auth"
+  service:
+    name: "filebeat_auth"
+    state: "started"
+    enabled: "yes"

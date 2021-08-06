@@ -1,0 +1,8 @@
+---
+- name: create filebeat user
+  become: yes
+  user:
+    name: filebeat
+    groups: ["www-data"]
+    state: "present"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'

@@ -1,1 +1,3 @@
-# etosamoe-ansible
+# etosamoe
+
+В этом репозитории я складываю мои роли для Ansible

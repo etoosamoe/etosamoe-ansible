@@ -1,0 +1,39 @@
+{% for i in node_environments %}{% if i in ansible_nodename %}
+setup.template.name: "syslog"
+setup.template.pattern: "syslog-{{ i }}*"
+setup.template.enabled: true
+setup.ilm.enabled: false
+
+output.elasticsearch:
+  hosts: {{ elasticsearch_hosts | to_json}}
+  indices:
+    - index: "nginx-{{ i }}-%{+yyyy.MM.dd}"
+      when:
+        contains:
+          log.file.path: "/opt/venv/"
+        not:
+          log.file.path: "/var/log/syslog"
+          log.file.path: "/var/log/auth.log"
+
+    - index: "syslog-{{ i }}-%{+yyyy.MM.dd}"
+      when.contains:
+        fileset.name: "syslog"
+
+    - index: "redis-{{ i }}-%{+yyyy.MM.dd}"
+      when:
+        contains:
+          log.file.path: "/var/log/redis"
+
+    - index: "postgres-{{ i }}-%{+yyyy.MM.dd}"
+      when.or:
+      - contains:
+          log.file.path: "/pgsqldb/"
+      - contains:
+          message: "/pgsqldb/"
+
+{% endif %}{% endfor %}
+
+filebeat.config.modules:
+  path: /etc/filebeat/modules.d/*.yml
+setup.kibana:
+  host: "10.1.12.99"

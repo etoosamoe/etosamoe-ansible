@@ -1,0 +1,83 @@
+---
+- name: Creates filebeat directory in etc
+  file:
+    path: "/etc/filebeat/"
+    state: directory
+    mode: "u=rwx,g=r,o=r"
+    owner: root
+    recurse: true
+
+  ### CREATE configs for services ###
+- name: "Check if SERVICE is installed"
+  package_facts:
+    manager: "auto"
+
+- name: create configs for services
+  become: yes
+  template:
+    src: "configs/filebeat_{{ item.module }}.j2"
+    dest: "/etc/filebeat/filebeat_{{ item.module }}.yml"
+    owner: root
+    mode: "u=rwx,g=r,o=r"
+  notify:
+    - "restart filebeat_{{ item.module }}"
+    - "check started filebeat_{{ item.module }}"
+  when:
+    - "'{{ item.service }}' in ansible_facts.packages"
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  with_items:
+    - "{{ packages_list_default }}"
+
+- name: create systemd unit file for services
+  become: yes
+  vars:
+    - fl_service: "{{ item.module }}"
+  template:
+    src: "systemd/filebeat.service.j2"
+    dest: "/etc/systemd/system/filebeat_{{ item.module }}.service"
+    owner: root
+    mode: "u=rwx,g=r,o=r"
+  when:
+    - "'{{ item.service }}' in ansible_facts.packages"
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  notify:
+    - "restart filebeat_{{ item.module }}"
+    - "check started filebeat_{{ item.module }}"
+  with_items:
+    - "{{ packages_list_default }}"
+
+    ### syslog conf ### TODO: rework syslog section
+#- name: put syslog conf
+#  vars:
+#    - fl_service: "syslog"
+#  template:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#    owner: root
+#    mode: "u=rwx,g=r,o=r"
+#  with_items:
+#    - {src: "systemd/filebeat.service.j2", dest: "/etc/systemd/system/filebeat_{{ fl_service }}.service"}
+#    - {src: "configs/filebeat_{{ fl_service }}.j2", dest: "/etc/filebeat/filebeat_{{ fl_service }}.yml"}
+#  notify:
+#    - "restart filebeat_syslog"
+#    - "check started filebeat_syslog"
+    ######### ------- ##########
+
+  ### auth log ###
+
+- name: put auth conf
+  vars:
+    - fl_service: "auth"
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    mode: "u=rwx,g=r,o=r"
+  with_items:
+    - {src: "systemd/filebeat.service.j2", dest: "/etc/systemd/system/filebeat_{{ fl_service }}.service"}
+    - {src: "configs/filebeat_{{ fl_service }}.j2", dest: "/etc/filebeat/filebeat_{{ fl_service }}.yml"}
+  notify:
+    - "restart filebeat_auth"
+    - "check started filebeat_auth"
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
