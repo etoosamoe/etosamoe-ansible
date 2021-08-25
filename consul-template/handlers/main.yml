@@ -1,0 +1,8 @@
+---
+- name: "restart consul-template"
+  systemd:
+    state: "restarted"
+    name: "consul-template"
+    enabled: "yes"
+    daemon_reload: "yes"
+  ignore_errors: yes

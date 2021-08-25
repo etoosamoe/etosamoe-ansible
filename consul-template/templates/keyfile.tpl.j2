@@ -1,0 +1,3 @@
+{% if item != 'consul_token' %}
+{{ '{{' }} key "{{ consul_template[item]['consul_config_path']}}" {{ '}}' }}
+{% endif %}

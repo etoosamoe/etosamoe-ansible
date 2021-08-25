@@ -1,0 +1,8 @@
+#!/bin/bash
+
+{% if item != 'consul_token' %}
+    {% for string in consul_template[item]['script_command'] %}
+        {{- string }}
+    {% endfor %}
+{% endif %}
+

@@ -1,0 +1,29 @@
+consul {
+    address = "127.0.0.1:8500"
+    retry {
+        enabled = true
+        attempts = 12
+        backoff = "250ms"
+    }
+    token = "token here"
+}
+reload_signal = "SIGHUP"
+kill_signal = "SIGINT"
+max_stale = "10m"
+log_level = "debug"
+
+{% for a in consul_template %}
+template {
+{% if consul_template[a]['file_source'] != false %}
+source      = "{{ consul_template[a]['file_source'] }}"
+{% else %}
+source      = "keyfile-{{ a }}.tpl"
+{% endif %}
+destination = "{{ consul_template[a]['file_destination'] }}"
+perms       = 0744
+  {% if consul_template[a]['script_needed'] == true %}
+command     = "bash ./script-{{ a }}.sh"
+  {% endif %}
+}
+
+{% endfor %}

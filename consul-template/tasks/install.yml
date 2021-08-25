@@ -1,0 +1,60 @@
+- name: Creates consul-template directory in etc
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "u=rwx,g=rwx,o=rwx"
+    owner: root
+    group: root
+    recurse: true
+  with_items:
+    - /etc/consul-template/
+
+- name: Copy consul-template config file
+  template:
+    src: config.hcl.j2
+    dest: /etc/consul-template/config.hcl
+  with_items: "{{ consul_template }}"
+  notify:
+    - "restart consul-template"
+  
+- name: Copy consul-template key file
+  template:
+    src: keyfile.tpl.j2
+    dest: /etc/consul-template/keyfile-{{ item }}.tpl
+  with_items: "{{ consul_template }}"
+  notify:
+    - "restart consul-template"
+
+#- name: Replace config path
+#  replace:
+#    path: /etc/consul-template/keyfile-{{ item }}.tpl
+#    regexp: "CONFIG_PATH"
+#    replace: "{{ item.consul_config_path }}"
+#  notify: restart consul-template
+#  with_items: "{{ consul_template }}"
+
+- name: Copy script file if needed
+  template:
+    src: script.sh.j2
+    dest: /etc/consul-template/script-{{ item }}.sh
+  with_items: "{{ consul_template }}"
+  when:
+    - consul_template[item]['script_needed'] == true
+  notify:
+    - "restart consul-template"
+
+- name: Make script executable
+  file:
+    dest: /etc/consul-template/script-{{ item }}.sh
+    mode: a+x
+  when: 
+    - consul_template[item]['script_needed'] == true
+  with_items: "{{ consul_template }}"
+  notify:
+    - "restart consul-template"
+
+- name: Check and install consul-template
+  apt:
+    name: consul-template
+    state: present
+    update_cache: yes

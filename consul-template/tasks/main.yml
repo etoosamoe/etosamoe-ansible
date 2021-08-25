@@ -1,0 +1,14 @@
+---
+- name: Gather the package facts
+  package_facts:
+    manager: auto
+
+# Include install task only if Consul-puls installed and template is necessary
+- name: Include install task
+  include_tasks: install.yml
+  when: 
+    - "'consul' in ansible_facts.packages"
+  #  - consul_template[item.consul_template].need == true
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  #with_items: 
+  #  - "{{ consul_template }}"
