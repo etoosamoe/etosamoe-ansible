@@ -1,0 +1,5 @@
+- name: Restart logstash-exporter
+  community.docker.docker_compose:
+    project_src: /etc/logstash-exporter
+    build: no
+    restarted: yes

@@ -1,0 +1,29 @@
+- name: Install python3-pip
+  ansible.builtin.apt:
+    name: python3-pip
+    state: present
+
+- name: Install docker python module
+  pip:
+    name:
+      - docker
+      - docker-compose
+    executable: pip3
+
+- name: Create exporter directory
+  ansible.builtin.file:
+    path: /etc/logstash-exporter
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /etc/logstash-exporter/docker-compose.yml
+    mode: '0644'
+  notify: Restart logstash-exporter
+
+- name: Start logstash-exporter container
+  docker_compose:
+    project_src: /etc/logstash-exporter
+    recreate: never

@@ -1,0 +1,7 @@
+version: "3"
+services:
+  logstash-exporter:
+    image: alxrem/prometheus-logstash-exporter
+    ports:
+    - "9304:9304"
+    command: ["-logstash.host", "{{inventory_hostname}}"]
