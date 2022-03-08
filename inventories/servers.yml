@@ -1,0 +1,9 @@
+all:
+  children:
+    contabo:
+      hosts:
+        etogeek.ru:
+    mvps:
+      hosts:
+        newetogeek:
+#          ansible_host: 94.176.182.183

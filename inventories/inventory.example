@@ -1,0 +1,12 @@
+all:
+  children:
+    group1:
+      hosts:
+        host1:
+          ansible_host: 127.0.0.1
+    group2:
+      hosts:
+        host2:
+          ansible_host: 127.0.0.2
+      vars:
+        foo: bar
