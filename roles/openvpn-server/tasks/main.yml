@@ -61,3 +61,38 @@
   become: yes
   shell: /usr/sbin/update-ca-certificates
 
+- name: Create req for server key
+  command: ./easyrsa --batch gen-req server nopass
+  args:
+    chdir: "{{ easy_rsa_dir }}"
+    creates: "{{ easy_rsa_dir }}/pki/reqs/server.req"
+
+- name: Sign server.req
+  command: ./easyrsa --batch sign-req server server
+  args:
+    chdir: "{{ easy_rsa_dir }}"
+    creates: "{{ easy_rsa_dir }}/pki/issued/server.crt"
+
+- name: Copy key to {{ openvpn_dir }}
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ openvpn_dir }}"
+    remote_src: yes
+  with_items:
+    - "{{ easy_rsa_dir }}/pki/private/server.key"
+    - "{{ easy_rsa_dir }}/pki/issued/server.crt"
+    - "{{ easy_rsa_dir }}/pki/ca.crt"
+
+- name: Create ta.key
+  command: openvpn --genkey --secret ta.key
+  args:
+    chdir: "{{ easy_rsa_dir }}"
+    creates: "{{ easy_rsa_dir }}/ta.key"
+
+- name: Copy ta.key to {{ openvpn_dir}}
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ easy_rsa_dir }}/ta.key"
+    dest: "{{ openvpn_dir }}"
+    remote_src: yes
