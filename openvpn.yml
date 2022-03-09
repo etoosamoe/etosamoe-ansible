@@ -1,0 +1,5 @@
+- name: Install software to new server
+  hosts: mvps
+ 
+  roles:
+    - openvpn-server

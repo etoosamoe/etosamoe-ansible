@@ -1,0 +1,63 @@
+- name: Update apt cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+    
+- name: Install OpenVPN and EasyRSA
+  become: yes
+  ansible.builtin.apt:
+    name: 
+      - openvpn
+      - easy-rsa
+    state: present
+
+- name: Ensures {{ config_root }}/easy-rsa dir exists
+  become: yes
+  file: 
+    path: "{{ easy_rsa_dir }}"
+    state: directory
+
+- name: Ensures {{ config_root }}/client-configs dir exists
+  become: yes
+  file: 
+    path: "{{ config_root }}/client-configs"
+    state: directory
+
+- name: Copy easy-rsa to {{ config_root }}/easy-rsa
+  become: yes
+  ansible.builtin.copy:
+    src: /usr/share/easy-rsa/
+    dest: "{{ easy_rsa_dir }}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0700
+    remote_src: yes
+
+- name: Initialize pki
+  command: ./easyrsa init-pki
+  args:
+    chdir: "{{ easy_rsa_dir }}"
+    creates: "{{ easy_rsa_dir }}/pki"
+
+- name: Copy pki vars
+  template:
+    src: vars.j2
+    dest: "{{ easy_rsa_dir }}/vars"
+
+- name: "Build CA keys"
+  command: ./easyrsa --batch build-ca nopass
+  args:
+    chdir: "{{ easy_rsa_dir }}"
+    creates: "{{ easy_rsa_dir }}/pki/ca.crt"
+
+- name: Copy easy-rsa to {{ config_root }}/easy-rsa
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ easy_rsa_dir }}/pki/ca.crt"
+    dest: /usr/local/share/ca-certificates/
+    remote_src: yes
+
+- name: Update CA certificates
+  become: yes
+  shell: /usr/sbin/update-ca-certificates
+

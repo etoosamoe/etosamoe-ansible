@@ -6,4 +6,4 @@ all:
     mvps:
       hosts:
         newetogeek:
-#          ansible_host: 94.176.182.183
+          user: yuriy
