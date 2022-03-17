@@ -1,9 +1,0 @@
-all:
-  children:
-    contabo:
-      hosts:
-        etogeek.ru:
-    mvps:
-      hosts:
-        newetogeek:
-          user: yuriy
