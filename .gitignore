@@ -1,2 +1,3 @@
 inventories/*
 !inventories/inventory.example
+roles/server-config/defaults/main.yml

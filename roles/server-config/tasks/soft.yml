@@ -1,0 +1,14 @@
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install common software
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - htop
+    - net-tools
+    - curl
+    - nano
+    - wget

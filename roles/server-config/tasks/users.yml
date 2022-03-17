@@ -1,0 +1,30 @@
+- name: create users debian
+  become: yes
+  ignore_errors: yes
+  user:
+    name: "{{ user[item.user].name }}"
+    groups: "{{ user[item.user].groups | default('www-data') }}"
+    state: "{{ item.state }}"
+    shell: /bin/bash
+    expires: "{{ user[item.user].expires | default('-1') }}"
+    password: "{{ user[item.user].passwd }}"
+  with_items: "{{ all_users }}"
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: "Allow admin users to sudo without a password"
+  lineinfile:
+    dest: "/etc/sudoers"
+    state: "{{ item.state }}"
+    line: "{{ user[item.user].name }} ALL=(ALL) NOPASSWD: ALL"
+  when:
+    - "'{{ user[item.user].status }}' == 'admin'"
+  with_items: "{{ all_users }}"
+
+- name: "Add authorized keys"
+  authorized_key:
+    user: "{{ user[item.user].name }}"
+    key: "{{ user[item.user].key }}"
+    state: "{{ item.state }}"
+  failed_when: false
+  with_items: "{{ all_users }}"

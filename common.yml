@@ -4,4 +4,4 @@
  
   roles:
     - change-hostname
-    - docker
+    - server-config
