@@ -1,3 +1,6 @@
-config_root: /home/{{ user }}
+config_root: "/home/{{ user }}"
 easy_rsa_dir: "{{ config_root }}/easy-rsa"
+client_config: "/home/{{ user }}/client-configs"
 openvpn_dir: /etc/openvpn/server
+dns_server1: "208.67.222.222"
+dns_server2: "208.67.220.220"

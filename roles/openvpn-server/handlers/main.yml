@@ -1,0 +1,9 @@
+- name: sysctl_reload
+  become: yes
+  command: sysctl -p
+
+- name: restart_openvpn
+  systemd:
+    name: openvpn-server@server
+    state: restarted
+    enabled: yes

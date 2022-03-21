@@ -1,3 +1,11 @@
+- name: Config ipv4 forwarding
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^net.ipv4.ip_forward'
+    line: net.ipv4.ip_forward = 1
+  notify: sysctl_reload
+
 - name: Update apt cache
   become: yes
   ansible.builtin.apt:
@@ -11,17 +19,25 @@
       - easy-rsa
     state: present
 
-- name: Ensures {{ config_root }}/easy-rsa dir exists
+- name: Ensures needed dirs exist
   become: yes
   file: 
-    path: "{{ easy_rsa_dir }}"
+    path: "{{ item }}"
     state: directory
-
-- name: Ensures {{ config_root }}/client-configs dir exists
+  with_items:
+    - "{{ easy_rsa_dir }}"
+  
+- name: Fixing dir permissions
   become: yes
-  file: 
-    path: "{{ config_root }}/client-configs"
+  file:
+    path: "{{ item }}"
     state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+  with_items:
+    - "{{ client_config }}"
+    - "{{ client_config }}/keys"
+    - "{{ client_config }}/files"
 
 - name: Copy easy-rsa to {{ config_root }}/easy-rsa
   become: yes
@@ -90,9 +106,43 @@
     chdir: "{{ easy_rsa_dir }}"
     creates: "{{ easy_rsa_dir }}/ta.key"
 
-- name: Copy ta.key to {{ openvpn_dir}}
+- name: Copy ta.key to {{ openvpn_dir }}
   become: yes
   ansible.builtin.copy:
     src: "{{ easy_rsa_dir }}/ta.key"
     dest: "{{ openvpn_dir }}"
     remote_src: yes
+
+- name: Copy Server config file
+  become: yes
+  ansible.builtin.template:
+    src: server.conf.j2
+    dest: "{{ openvpn_dir }}/server.conf"
+  notify: restart_openvpn
+
+- name: Copy server cert and key to client dir
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ client_config }}/keys/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    remote_src: yes
+  with_items:
+    - "{{ openvpn_dir }}/ca.crt"
+    - "{{ easy_rsa_dir }}/ta.key"
+
+- name: Create script for user accounts
+  ansible.builtin.copy:
+    src: files/make_config.sh
+    dest: "{{ client_config }}/make_config.sh"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: +x
+
+- name: Copy base.conf
+  ansible.builtin.template:
+    src: base.conf.j2
+    dest: "{{ client_config }}/base.conf"
+    owner: "{{ user }}"
+    group: "{{ user }}"

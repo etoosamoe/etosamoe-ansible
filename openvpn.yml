@@ -1,5 +1,5 @@
 - name: Install software to new server
-  hosts: mvps
+  hosts: ruvds
  
   roles:
     - openvpn-server
