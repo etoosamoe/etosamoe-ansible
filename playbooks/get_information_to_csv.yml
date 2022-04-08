@@ -1,0 +1,52 @@
+---
+- name: Gathering all facts 
+  hosts: all
+  vars:
+    output_path: "."
+    filename: "device_report_{{ date }}.csv"
+  tasks:
+    - name: CSV - Generate output filename
+      set_fact: date="{{lookup('pipe','date +%Y%m%d')}}"
+      run_once: true
+
+    - name: CSV - Create file and set the header
+      lineinfile:
+        dest: "{{ output_path }}/{{ filename }}"
+        line:
+          hostname,fqdn,ip,distr,kernel,ram,cpu,hdd_device,hdd_size
+        create: yes
+        state: present 
+      delegate_to: 127.0.0.1
+
+    - set_fact:
+        my_devices: "{{ ansible_devices.keys()|
+                        reject('match', '^loop(.*)$')|
+                        list }}"
+
+    - name: Get HDD information
+      set_fact:
+        hdd_info: >
+          {% for dev in my_devices -%}
+          {{ dev }},{{ ansible_devices[dev].size }},
+          {%- endfor %}
+      with_items: "{{ my_devices }}"
+
+    - name: CSV - Get information
+      set_fact:
+        csv_temp: >
+          {{ ansible_hostname }},{{ ansible_fqdn }},{{ ansible_default_ipv4.address }},{{ ansible_lsb.description }},{{ ansible_kernel }},{{ (ansible_memtotal_mb/1000) }}GB,{{ ansible_processor_vcpus }},{{ item }}
+      with_items: "{{ hdd_info }}"
+    
+    - name: CSV - Write information into .csv file
+      lineinfile:
+        insertafter: EOF
+        dest: "{{ output_path }}/{{ filename }}"
+        line: "{{ csv_temp }}"
+      delegate_to: 127.0.0.1
+  
+    - name: CSV - Blank lines removal
+      lineinfile:
+        path: "./{{ output_path }}/{{ filename }}"
+        state: absent
+        regex: '^\s*$'
+      delegate_to: 127.0.0.1
